@@ -1,0 +1,19 @@
+# terraform/terraform.tfvars.example
+
+project_id  = "your-project-id-here"
+region      = "us-central1"
+environment = "demo"
+
+# Cluster configuration
+cluster_name             = "wingspan-cluster"
+node_machine_type        = "e2-small"
+initial_node_count       = 2
+min_node_count          = 1
+max_node_count          = 3
+enable_preemptible_nodes = true
+
+# Security features
+enable_binary_authorization = true
+enable_workload_identity   = true
+enable_shielded_nodes      = true
+enable_network_policy      = true
