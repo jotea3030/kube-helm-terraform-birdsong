@@ -1,36 +1,62 @@
-{{- if .Values.networkPolicy.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "wingspan-quiz.fullname" . }}
-  labels:
-    {{- include "wingspan-quiz.labels" . | nindent 4 }}
+  name: wingspan-quiz-netpol
+  namespace: wingspan
 spec:
   podSelector:
     matchLabels:
-      {{- include "wingspan-quiz.selectorLabels" . | nindent 6 }}
+      app: wingspan-quiz
   policyTypes:
-    - Ingress
-    - Egress
+  - Ingress
+  - Egress
+  
+  # Ingress rules - who can connect TO wingspan-quiz pods
   ingress:
-    - from:
-      - namespaceSelector:
-          matchLabels:
-            name: ingress-nginx
-      ports:
-      - protocol: TCP
-        port: 8080
+  # Allow traffic from ingress-nginx namespace (using standard label)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8080
+  
+  # Also allow from pods with ingress-nginx label (pod-level selector)
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8080
+  
+  # Egress rules - where wingspan-quiz pods can connect TO
   egress:
-    - to:
-      - namespaceSelector:
-          matchLabels:
-            kubernetes.io/metadata.name: kube-system
-      ports:
-      - protocol: UDP
-        port: 53
-    - to:
-      - podSelector: {}
-      ports:
-      - protocol: TCP
-        port: 443
-{{- end }}
+  # Allow DNS queries to kube-system
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  
+  # Allow HTTPS for external APIs
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443
+  
+  # Allow HTTP for external APIs
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 80

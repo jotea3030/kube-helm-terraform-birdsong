@@ -30,7 +30,7 @@ spec:
           runAsNonRoot: true
           runAsUser: 101
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false  # Changed: nginx entrypoint needs write access
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
               - ALL
@@ -43,19 +43,3 @@ spec:
           requests:
             cpu: 50m
             memory: 128Mi
-        # Added: Volume mounts for writable directories
-        volumeMounts:
-        - name: cache
-          mountPath: /var/cache/nginx
-        - name: run
-          mountPath: /var/run
-        - name: tmp
-          mountPath: /tmp
-      # Added: Volumes for writable directories
-      volumes:
-      - name: cache
-        emptyDir: {}
-      - name: run
-        emptyDir: {}
-      - name: tmp
-        emptyDir: {}
